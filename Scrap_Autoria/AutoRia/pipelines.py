@@ -45,4 +45,6 @@ class FormatDataPipeline:
 #Fill PostgresSQL database
 
 class PostgresSQLPipeline:
-    pass
+
+    def open_spider(self):
+        pass
