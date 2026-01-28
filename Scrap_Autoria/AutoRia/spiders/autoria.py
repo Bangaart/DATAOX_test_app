@@ -2,39 +2,7 @@ import scrapy
 from scrapy.http import HtmlResponse
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-
-
-class PhoneButton(scrapy.Spider):
-    name = "phone"
-    custom_settings = {
-    "FEEDS": {
-        "phone.json": {
-            "format": "json",
-            "encoding": "utf-8",
-            "indent": 4,
-            "override": True
-        }
-    }
-
-    }
-    def __init__(self, url=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.driver = webdriver.Chrome()
-        self.start_urls = [url]
-
-
-    async def start(self):
-         for url in self.start_urls:
-            self.driver.get(url)
-            button = self.driver.find_element(By.XPATH, '//div[@id="sellerInfo"]//button[@data-action="showBottomPopUp"]')
-            button.click()
-            html = self.driver.page_source
-            response = HtmlResponse(self.driver.current_url, body=html, encoding='utf-8')
-            yield response
-
-    def parse(self, response):
-        phone_number = response.xpath('//button[@data-action="call"]/text()').get()
-        yield {"phone_number": phone_number}
+from selenium.webdriver.support.wait import WebDriverWait
 
 
 class AutoriaSpider(scrapy.Spider):
@@ -43,7 +11,7 @@ class AutoriaSpider(scrapy.Spider):
     start_urls = ["https://auto.ria.com/uk/car/used/"]
     custom_settings = {
         "FEEDS": {
-        "cars.json": {
+        "used_cars.json": {
         "format": "json",
         "encoding": "utf-8",
         "indent": 4,
@@ -58,24 +26,24 @@ class AutoriaSpider(scrapy.Spider):
         cars_links = response.xpath('//div[@class="content"]//a/@href').re(r"^https:\/\/.+$")
         yield from response.follow_all(cars_links, callback=self.parse_car_item)
 
-        # next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
-        # yield response.follow(next_url, callback=self.parse)
+        next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
+        yield response.follow(next_url, callback=self.parse)
 
     def parse_car_item(self, response):
         options = webdriver.ChromeOptions()
         options.add_argument("--headless=new")
         options.add_argument("--window-size=1920,1080")
         driver = webdriver.Chrome(options=options)
-
-        item=  response.xpath('//div[@id="main"]')
         driver.get(response.url)
         button = driver.find_element(By.XPATH,'//div[@id="sellerInfo"]//button[@data-action="showBottomPopUp"]')
         button.click()
+        wait = WebDriverWait(driver, 10)
+        wait.until(lambda d: d.find_element(By.XPATH, '//div[contains(@class, "popup-body")]//button[@data-action="call"]/span').text.strip() != "")
         html = driver.page_source
         response = HtmlResponse(driver.current_url, body=html, encoding='utf-8')
-        phone_number = response.xpath('//div[@id="autoPhoneTitle"]').getall()
-        with open('after_click.html', 'a', encoding='utf-8') as f:
-            f.write(driver.page_source)
+        phone_number = response.xpath('//div[contains(@class, "popup-body")]//button[@data-action="call"]/span/text()').get()
+        driver.close()
+        item = response.xpath('//div[@id="main"]')
         yield {
                 "url": response.url,
                 "title": item.xpath('//div[@id="sideTitleTitle"]/span/text()').get(),
