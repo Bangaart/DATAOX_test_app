@@ -24,7 +24,7 @@ class AutoriaSpider(scrapy.Spider):
         "override": True
     }
 },
-        "COOKIES_ENABLED": False
+        "COOKIES_ENABLED": True
     }
 
     #Define webdriver from Selenium. Selenium will help us to retrieve phone number from pop up. Also it would be done with playwright
@@ -42,14 +42,15 @@ class AutoriaSpider(scrapy.Spider):
 
     #Here we define our page urls and cars urls(car profile). In this case parse method return responses which go to the
     # method belows (parse_car_items)
-    #I manually restricted only 10 pages because i have problem with site bots defense. I have got ban on the site while parse it.
+    #I manually restricted only 5 pages because i have problem with site bots defense. I have got ban on the site while parse it.
+    #VPN didn't help. It's next lvl unfortunately
     #To avoid it we can use for example proxies and other techniques but i have no enough experience but the main problem is time resource
 
     def parse(self, response):
         cars_links = response.xpath('//div[@class="content"]//a/@href').re(r"^https:\/\/.+$")
         yield from response.follow_all(cars_links, self.parse_car_item)
 
-        for i in range(10):
+        for i in range(5):
             next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
             yield response.follow(next_url, callback=self.parse)
 
@@ -62,7 +63,7 @@ class AutoriaSpider(scrapy.Spider):
         self.driver.get(response.url)
         button = self.driver.find_element(By.XPATH, '//div[@id="sellerInfo"]//button[@data-action="showBottomPopUp"]')
         button.click()
-        wait = WebDriverWait(self.driver, 10)
+        wait = WebDriverWait(self.driver, 5)
         wait.until(lambda d: d.find_element(By.XPATH,
                                             '//div[contains(@class, "popup-body")]//button[@data-action="call"]/span').text.strip() != "")
 

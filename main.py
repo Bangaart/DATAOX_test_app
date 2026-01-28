@@ -1,16 +1,16 @@
-# This is a sample Python script.
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
+from Scrap_Autoria.AutoRia.models import UsedCar
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+CONNECT_TO_POSTGRES_URL = f"postgresql+psycopg2://admin:1234@localhost:5432/cars"
 
+engine = create_engine(
+            CONNECT_TO_POSTGRES_URL
+        )
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+Session = sessionmaker(engine)
 
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+with Session() as session:
+    statment = select(UsedCar).where(UsedCar.id == 1)
+    cars = session.execute(statment).fetchall()
+    print(cars)

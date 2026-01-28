@@ -7,7 +7,15 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem
+import os
+from sqlalchemy import create_engine, exc
+from sqlalchemy.orm import Session, sessionmaker
+from dotenv import load_dotenv
 
+from .models import UsedCar, Base
+
+#load env variables
+load_dotenv()
 
 class AutoriaPipeline:
     def process_item(self, item, spider):
@@ -42,9 +50,39 @@ class FormatDataPipeline:
         return item
 
 
-#Fill PostgresSQL database
+#Connetc and fill PostgresSQL database
 
 class PostgresSQLPipeline:
 
-    def open_spider(self):
-        pass
+    def __init__(self):
+        self.CONNECT_TO_POSTGRES_URL = (f"postgresql+psycopg2://"
+                                        f"{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
+                                        f"@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}")
+
+        self.engine = create_engine(
+            self.CONNECT_TO_POSTGRES_URL
+        )
+
+        self.Session = sessionmaker(self.engine)
+
+
+    def open_spider(self, spider):
+        Base.metadata.create_all(self.engine)
+        spider.logger.info('Created database tables')
+
+    def process_item(self, item):
+        adapter = ItemAdapter(item)
+        with self.Session() as session:
+            with session.begin_nested():
+                try:
+                    car = UsedCar(url=adapter["url"], title=adapter["title"], price_usd=adapter["price_usd"],
+                                  odometer=adapter["odometer"], images_count=adapter["images_count"], username=adapter["username"],
+                                  phone_number=adapter["phone_number"], image_url=adapter["image_url"],
+                                  image_count=adapter["image_count"], car_number=adapter["car_number"],
+                                  car_vin=adapter["car_vin"])
+                    session.add(car)
+                    session.commit()
+                except exc.IntegrityError:
+                    print("Skipped this row already exist in database")
+
+        return item

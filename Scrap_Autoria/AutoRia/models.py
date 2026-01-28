@@ -5,16 +5,20 @@ from sqlalchemy import Column, Integer, String, DateTime
 
 
 class Base(DeclarativeBase):
+    pass
+
+
+class UsedCar(Base):
     __tablename__ = "used_cars"
     id = Column(Integer, primary_key=True)
     url = Column(String)
     title = Column(String)
     price_usd = Column(Integer)
-    odometer = Column(Integer)
+    odometer = Column(Integer, default=0)
     username = Column(String)
     phone_number = Column(Integer)
-    image_url = Column(String)
+    image_url = Column(String, default="Not found")
     images_count = Column(Integer)
-    car_number = Column(String)
+    car_number = Column(String, default="Not found")
     car_vin = Column(String, unique=True)
     datetime_found = Column(DateTime, default=datetime.now())
