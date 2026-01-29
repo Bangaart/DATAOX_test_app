@@ -9,9 +9,9 @@ from selenium.webdriver.support.wait import WebDriverWait
 class AutoriaSpider(scrapy.Spider):
     name = "autoria"
     allowed_domains = ["auto.ria.com"]
-    start_urls = ["https://auto.ria.com/uk/car/used/"]
-
-    #define custom settings. Here we set up setting for json file for storage data as a backup copy.
+    start_urls = ["https://auto.ria.com/uk/search/?search_type=2&page=0"]
+    base_url = "https://auto.ria.com"
+    #define custom settings. Here we set up setting for JSON file for storage data as a backup copy.
     #Cookies = False,to not provide cookie and try to escape
     #site defense against bots (it doesn't work in my case)
 
@@ -42,18 +42,20 @@ class AutoriaSpider(scrapy.Spider):
     def closed(self, reason):
         self.driver.close()
 
-
     #Here we define our page urls and cars urls(car profile). In this case parse method return responses which go to the
     # method belows (parse_car_items)
-
     def parse(self, response):
-        cars_links = response.xpath('//div[@class="content"]//a/@href').re(r"^https:\/\/.+$")
-        yield from response.follow_all(cars_links, self.parse_car_item)
+        cars_links = response.xpath('//div[@id="items"]//a[contains(@class, "product-card")]/@href').getall()
+        full_cars_urls = [self.base_url + item for item in cars_links]
+        yield from response.follow_all(full_cars_urls, self.parse_car_item)
 
-#comment this part because it doesn't work now
-
-        # next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
-        # yield response.follow(next_url, callback=self.parse)
+        #define next_link
+        last_query_index= response.url.rfind("=") + 1
+        last_query_value = response.url[last_query_index:]
+        next_page_number = int(response.url[last_query_index:]) + 1
+        if response.xpath('//button[@title="Next" and not(@disabled)]'):
+            next_url = response.url.replace(last_query_value, str(next_page_number))
+            yield response.follow(next_url, callback=self.parse)
 
 
     #The main logic. Here we parse the response which we get from Downloader. Use selenium to click on the phone link and invoke
@@ -79,7 +81,7 @@ class AutoriaSpider(scrapy.Spider):
 
         odometer = item.xpath('//div[@id="basicInfoTableMainInfo0"]/span/text()').get()
         username = item.xpath('//div[@id="sellerInfoUserName"]/span/text()').get()
-        image_url = item.css(".photo-slider").xpath('//img/@src').re("^https:\/\/.+$")[0]
+        image_url = item.css(".photo-slider").xpath('//img/@src').re(r"^https:\/\/.+$")[0]
         images_count = item.xpath('//div[@id="photoSlider"]/span/span[last()]/text()').get()
         car_number = item.xpath('//div[@id="badges"]/div/span/text()').get(default="Number is not provided")
         car_vin = item.xpath('//div[@id="badgesVinGrid"]//span/text()').get()
