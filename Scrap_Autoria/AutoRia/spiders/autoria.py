@@ -4,13 +4,15 @@ from scrapy import Selector
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 class AutoriaSpider(scrapy.Spider):
     name = "autoria"
     allowed_domains = ["auto.ria.com"]
     start_urls = ["https://auto.ria.com/uk/search/?search_type=2&page=0"]
     base_url = "https://auto.ria.com"
+    max_pages = 4
+
     #define custom settings. Here we set up setting for JSON file for storage data as a backup copy.
     #Cookies = False,to not provide cookie and try to escape
     #site defense against bots (it doesn't work in my case)
@@ -24,7 +26,7 @@ class AutoriaSpider(scrapy.Spider):
         "override": True
     }
 },
-        "COOKIES_ENABLED": True
+        "COOKIES_ENABLED": False
     }
 
     #Define webdriver from Selenium. Selenium will help us to retrieve phone number from pop up. Also it would be done with playwright
@@ -39,22 +41,26 @@ class AutoriaSpider(scrapy.Spider):
 
         self.driver = webdriver.Chrome(options=options)
 
+        self.page_counter = 0
+
     def closed(self, reason):
         self.driver.close()
 
     #Here we define our page urls and cars urls(car profile). In this case parse method return responses which go to the
     # method belows (parse_car_items)
     def parse(self, response):
+        self.page_counter += 1
+
         cars_links = response.xpath('//div[@id="items"]//a[contains(@class, "product-card")]/@href').getall()
         full_cars_urls = [self.base_url + item for item in cars_links]
         yield from response.follow_all(full_cars_urls, self.parse_car_item)
 
         #define next_link
-        last_query_index= response.url.rfind("=") + 1
-        last_query_value = response.url[last_query_index:]
-        next_page_number = int(response.url[last_query_index:]) + 1
-        if response.xpath('//button[@title="Next" and not(@disabled)]'):
-            next_url = response.url.replace(last_query_value, str(next_page_number))
+        page_link = urlparse(response.url)
+        queries = parse_qs(page_link.query)
+        queries["page"] = [str((int(queries.get("page")[0]) + 1))]
+        next_url = urlunparse(page_link._replace(query=urlencode(queries, doseq=True)))
+        if (response.xpath('//button[@title="Next" and not(@disabled)]')) and self.page_counter < self.max_pages:
             yield response.follow(next_url, callback=self.parse)
 
 
