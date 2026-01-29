@@ -55,6 +55,13 @@ for scrap phone number, to interact with button
 i restricted pages numbers to 2). This value can be changed inside spider ```autoria```
 4. After this script finish, dump script activates and dumps all data from BD to folder dumps
 
+## What files and where we expect from the app
+1. folder dumps will create inside the root folder of the project.
+It contains JSON files with data. This files can't be overrided and all next dumps will create separately.
+2. Inside project folder Autoria after script finish we can find also JSON file (used_cars) it is a backup 
+on case when postgres will not work
+3. Also, we have scrapy_pipeline.log file for debugging 
+
 ## Additional info 
 Of course this project can be upgraded with some middlewares to pass site 
 bot defense such as proxies, fingerprints, changes browsers also use playwright instead of selemium and so on
