@@ -76,13 +76,14 @@ class PostgresSQLPipeline:
             with session.begin_nested():
                 try:
                     car = UsedCar(url=adapter["url"], title=adapter["title"], price_usd=adapter["price_usd"],
-                                  odometer=adapter["odometer"], images_count=adapter["images_count"], username=adapter["username"],
+                                  odometer=adapter["odometer"], username=adapter["username"],
                                   phone_number=adapter["phone_number"], image_url=adapter["image_url"],
-                                  image_count=adapter["image_count"], car_number=adapter["car_number"],
+                                  images_count=adapter["images_count"], car_number=adapter["car_number"],
                                   car_vin=adapter["car_vin"])
                     session.add(car)
                     session.commit()
                 except exc.IntegrityError:
+                    session.rollback()
                     print("Skipped this row already exist in database")
 
         return item

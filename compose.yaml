@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres
+    container_name: quotes_db
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    container_name: quotes_web
+    restart: always
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+      python manage.py runserver 0.0.0.0:8000"
+    
+
+    volumes:
+      - ./quotes:/quotes
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

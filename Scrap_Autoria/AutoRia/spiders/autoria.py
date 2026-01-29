@@ -11,7 +11,7 @@ class AutoriaSpider(scrapy.Spider):
     allowed_domains = ["auto.ria.com"]
     start_urls = ["https://auto.ria.com/uk/car/used/"]
 
-    #define custom settings. Here we set up setting for json file for storage data.
+    #define custom settings. Here we set up setting for json file for storage data as a backup copy.
     #Cookies = False,to not provide cookie and try to escape
     #site defense against bots (it doesn't work in my case)
 
@@ -43,16 +43,16 @@ class AutoriaSpider(scrapy.Spider):
     #Here we define our page urls and cars urls(car profile). In this case parse method return responses which go to the
     # method belows (parse_car_items)
     #I manually restricted only 5 pages because i have problem with site bots defense. I have got ban on the site while parse it.
-    #VPN didn't help. It's next lvl unfortunately
+    #VPN didn't help.
     #To avoid it we can use for example proxies and other techniques but i have no enough experience but the main problem is time resource
 
     def parse(self, response):
         cars_links = response.xpath('//div[@class="content"]//a/@href').re(r"^https:\/\/.+$")
         yield from response.follow_all(cars_links, self.parse_car_item)
 
-        for i in range(5):
-            next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
-            yield response.follow(next_url, callback=self.parse)
+        # for i in range(5):
+        #     next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
+        #     yield response.follow(next_url, callback=self.parse)
 
 
     #The main logic. Here we parse the response which we get from Downloader. Use selenium to click on the phone link and invoke
