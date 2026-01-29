@@ -45,17 +45,15 @@ class AutoriaSpider(scrapy.Spider):
 
     #Here we define our page urls and cars urls(car profile). In this case parse method return responses which go to the
     # method belows (parse_car_items)
-    #I manually restricted only to 2 pages for demo purpose and also i have problem with site bots defense.
-    #To avoid it we can use for example proxies and other techniques but i have no enough experience but the main problem is time resource
 
     def parse(self, response):
         cars_links = response.xpath('//div[@class="content"]//a/@href').re(r"^https:\/\/.+$")
         yield from response.follow_all(cars_links, self.parse_car_item)
 
-#here you can change numbers of pages to scrap
-        for i in range(1):
-            next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
-            yield response.follow(next_url, callback=self.parse)
+#comment this part because it doesn't work now
+
+        # next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
+        # yield response.follow(next_url, callback=self.parse)
 
 
     #The main logic. Here we parse the response which we get from Downloader. Use selenium to click on the phone link and invoke

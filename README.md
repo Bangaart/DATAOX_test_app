@@ -51,9 +51,11 @@ for scrap phone number, to interact with button
 ## How to launch apps 
 1. Download this project in the folder on your compute
 2. open docker inside this folder and run ```docker copmose up --build```
-3. After this it starts to scrap. (it can takes a lot of time so
-i restricted pages numbers to 1). This value can be changed inside spider ```autoria```
+3. After this it starts to scrap. (it can takes a lot of time so i am finding way to limit the number of pages, now i suggest to comment the code that yields next pages).
 4. After this script finish, dump script activates and dumps all data from BD to folder dumps
+
+
+
 
 ## What files and where we expect from the app
 1. folder dumps will create inside the root folder of the project.
