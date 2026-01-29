@@ -27,9 +27,12 @@ class DuplicatesPipeline:
     def __init__(self):
         self.vin_codes_seen = set()
 
+    def open_spider(self, spider):
+        spider.logger.info("Duplicates call")
+
 #Validation on duplicates using vin_code field
 
-    def process_item(self, item):
+    def process_item(self, item, spider):
         adapter = ItemAdapter(item)
         if adapter["car_vin"] in self.vin_codes_seen:
             raise DropItem(f"Duplicate item found{adapter['car_vin']}")
@@ -41,7 +44,11 @@ class DuplicatesPipeline:
 
 class FormatDataPipeline:
 
-    def process_item(self, item):
+
+    def open_spider(self, spider):
+        spider.logger.info("Fromat call")
+
+    def process_item(self, item, spider):
         adapter = ItemAdapter(item)
         adapter["images_count"] = int(adapter["images_count"])
         adapter["phone_number"] = int( "3" + "".join([item for item in adapter["phone_number"] if item.isdigit()]))
@@ -67,23 +74,25 @@ class PostgresSQLPipeline:
 
 
     def open_spider(self, spider):
+        Base.metadata.drop_all(self.engine)
         Base.metadata.create_all(self.engine)
         spider.logger.info('Created database tables')
 
-    def process_item(self, item):
+    def process_item(self, item, spider):
         adapter = ItemAdapter(item)
         with self.Session() as session:
-            with session.begin_nested():
-                try:
-                    car = UsedCar(url=adapter["url"], title=adapter["title"], price_usd=adapter["price_usd"],
+            try:
+                car = UsedCar(url=adapter["url"], title=adapter["title"], price_usd=adapter["price_usd"],
                                   odometer=adapter["odometer"], username=adapter["username"],
                                   phone_number=adapter["phone_number"], image_url=adapter["image_url"],
                                   images_count=adapter["images_count"], car_number=adapter["car_number"],
                                   car_vin=adapter["car_vin"])
-                    session.add(car)
-                    session.commit()
-                except exc.IntegrityError:
-                    session.rollback()
-                    print("Skipped this row already exist in database")
+                session.add(car)
+                session.commit()
+            except exc.IntegrityError:
+                session.rollback()
+                print("Skipped this row already exist in database")
+            except Exception as e:
+                spider.logger.error(f"error in db {e}")
 
         return item

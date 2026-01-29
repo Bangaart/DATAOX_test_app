@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres
-    container_name: quotes_db
+    container_name: used_cars
     restart: always
     env_file:
       - .env
@@ -12,7 +12,7 @@ services:
 
   web:
     build: .
-    container_name: quotes_web
+    container_name: scrap_app
     restart: always
     command: >
       sh -c "python manage.py migrate --noinput &&
@@ -20,7 +20,7 @@ services:
     
 
     volumes:
-      - ./quotes:/quotes
+      - ./Scrap_Autoria/Autoria:/Autoria_app/Autoria
     ports:
       - "8000:8000"
     env_file:

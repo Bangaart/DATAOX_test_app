@@ -1,17 +1,13 @@
 FROM python:3.13.2
 
-WORKDIR  /quotes
+WORKDIR  /app
 
 
-COPY pyproject.toml poetry.lock ./
+COPY . .
 
-RUN pip install poetry
+RUN pip install -r requriments.txt
 
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-root
-
-
-COPY quotes ./
+COPY  Scrap_Autoria ./Autoria_app
 
 
 EXPOSE 8000

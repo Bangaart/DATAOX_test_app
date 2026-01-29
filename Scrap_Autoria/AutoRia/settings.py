@@ -6,7 +6,7 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-from scrapy.settings.default_settings import ITEM_PIPELINES
+
 
 BOT_NAME = "AutoRia"
 
@@ -59,9 +59,7 @@ DOWNLOAD_DELAY = 1
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "AutoRia.pipelines.AutoriaPipeline": 300,
-#}
+
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -88,9 +86,11 @@ DOWNLOAD_DELAY = 1
 FEED_EXPORT_ENCODING = "utf-8"
 
 ITEM_PIPELINES = {
-    "AutoRia.pipelines.DuplicatesPipeline": 200,
     "AutoRia.pipelines.FormatDataPipeline": 250,
-    "AutoRia.pipelines.PostgresSQLPipeline": 300,
+    "AutoRia.pipelines.PostgresSQLPipeline": 300
 }
 
 # CONCURRENT_REQUESTS = 5
+
+LOG_FILE = "scrapy_pipeline.log"
+LOG_LEVEL = "INFO"

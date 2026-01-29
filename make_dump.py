@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from Scrap_Autoria.AutoRia.models import UsedCar
 import os
 from dotenv import load_dotenv
-from datetime import datetime
+
 from pathlib import Path
 
 load_dotenv()
@@ -44,18 +44,20 @@ def dump_data(session=connect_db()):
                 "datetime_found": car.datetime_found.isoformat(),
             })
 
+    dumps_dir = Path("dumps")
+    dumps_dir.mkdir(exist_ok=True, parents=True)
 
-    # dumps_dir = Path("./dumps")
-    # dumps_dir.mkdir(exist_ok=True, parents=True)
+    filename = "used_cars"
+    i = 0
 
-    # filename = "used_cars"
-    # i=0
+    while (dumps_dir / f"{filename}{i}.json").exists():
+        i += 1
 
-    # while (dumps_dir / f"{filename}{i}.json").exists():
-    #     i=i+1
+    file_path = dumps_dir / f"{filename}{i}.json"
 
-    # file_path = dumps_dir / f"{filename}{i}.json"
-    Path('dumps').mkdir(exist_ok=True)
+    with file_path.open("w", encoding="utf-8") as f:
+        json.dump(cars_dump, f, ensure_ascii=False, indent=4)
 
-    with open("dumps/used_cars.json", "w", encoding='utf-8') as f:
-        f.write(json.dumps(cars_dump, indent=4))
+
+if __name__ == "__main__":
+    dump_data(session=connect_db())

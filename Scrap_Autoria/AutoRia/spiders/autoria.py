@@ -50,9 +50,9 @@ class AutoriaSpider(scrapy.Spider):
         cars_links = response.xpath('//div[@class="content"]//a/@href').re(r"^https:\/\/.+$")
         yield from response.follow_all(cars_links, self.parse_car_item)
 
-        # for i in range(5):
-        #     next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
-        #     yield response.follow(next_url, callback=self.parse)
+        for i in range(5):
+            next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
+            yield response.follow(next_url, callback=self.parse)
 
 
     #The main logic. Here we parse the response which we get from Downloader. Use selenium to click on the phone link and invoke
@@ -85,7 +85,7 @@ class AutoriaSpider(scrapy.Spider):
         price_usd = item.xpath('//div[@id="sidePrice"]/strong/text()').get()
 
         #yield an item with dictionary filled with values we scrapped above
-        yield {
+        cars = {
                 "url": response.url,
                 "title": title,
                 "price_usd": price_usd,
@@ -97,3 +97,4 @@ class AutoriaSpider(scrapy.Spider):
                 "car_number": car_number,
                 "car_vin": car_vin,
             }
+        yield cars
