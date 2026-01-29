@@ -34,6 +34,9 @@ class AutoriaSpider(scrapy.Spider):
         options = webdriver.ChromeOptions()
         options.add_argument("--headless=new")
         options.add_argument("--window-size=1920,1080")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+
         self.driver = webdriver.Chrome(options=options)
 
     def closed(self, reason):
@@ -42,15 +45,15 @@ class AutoriaSpider(scrapy.Spider):
 
     #Here we define our page urls and cars urls(car profile). In this case parse method return responses which go to the
     # method belows (parse_car_items)
-    #I manually restricted only 5 pages because i have problem with site bots defense. I have got ban on the site while parse it.
-    #VPN didn't help.
+    #I manually restricted only to 2 pages for demo purpose and also i have problem with site bots defense.
     #To avoid it we can use for example proxies and other techniques but i have no enough experience but the main problem is time resource
 
     def parse(self, response):
         cars_links = response.xpath('//div[@class="content"]//a/@href').re(r"^https:\/\/.+$")
         yield from response.follow_all(cars_links, self.parse_car_item)
 
-        for i in range(5):
+#here you can change numbers of pages to scrap
+        for i in range(2):
             next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
             yield response.follow(next_url, callback=self.parse)
 

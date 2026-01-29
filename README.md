@@ -1,0 +1,61 @@
+# AutoRia Scraper Project
+
+This project scrapes used car 
+listings from AutoRia and stores them in a 
+PostgreSQL database. After scraping, generates dump from database.
+For this app were used Scrapy framework and Selenium.
+Scrapy was chosen because it is already async from the box. Selemium used only
+for scrap phone number, to interact with button
+
+
+
+---
+## What was implemented 
+
+1. Scrap all fields from requirements
+2. Saved them inside Postgres
+3. Dump data once after scrap script is finished
+4. Make dump after scrap 
+5. Env Variables inside .env
+6. Launch app via docker compose and dockerfile
+7. Reduce duplicates 
+
+## What wasn't implemented 
+1. Daily scrap script run (schedule scrap)
+2. Daily dump (schedule dump)
+
+## Project Structure
+```
+│
+├── make_dump.py # Script to dump database contents from PostgreSQL
+├── requirements.txt # Python dependencies
+├── Dockerfile # Dockerfile for scraper container
+├── docker-compose.yml # Docker Compose for app and DB
+├── .env # Environment variables for DB connection
+│
+├── Scrap_Autoria/ # Scrapy project folder
+│ ├── scrapy.cfg # Scrapy config file
+│ └── AutoRia/ # Main Python package
+│ ├── init.py
+│ ├── items.py # Define Scrapy items
+│ ├── pipelines.py # Item pipelines - pipelines use for fill database and valided data(created 3 pipelines)
+│ ├── settings.py # Scrapy settings
+│ ├── models.py # SQLAlchemy models
+│ └── spiders/ # Folder for spiders
+│ ├── init.py
+│ └── autoria.py # Main spider
+│
+└── dumps/ # Folder where JSON dumps will be stored
+```
+
+## How to launch apps 
+1. Download this project in the folder on your compute
+2. open docker inside this folder and run ```docker copmose up --build```
+3. After this it starts to scrap. (it can takes a lot of time so
+i restricted pages numbers to 2). This value can be changed inside spider ```autoria```
+4. After this script finish, dump script activates and dumps all data from BD to folder dumps
+
+## Additional info 
+Of course this project can be upgraded with some middlewares to pass site 
+bot defense such as proxies, fingerprints, changes browsers also use playwright instead of selemium and so on
+I have no much time and experience to do it well.
