@@ -53,7 +53,7 @@ class AutoriaSpider(scrapy.Spider):
         yield from response.follow_all(cars_links, self.parse_car_item)
 
 #here you can change numbers of pages to scrap
-        for i in range(2):
+        for i in range(1):
             next_url = response.xpath('//link[@rel="prefetch"]/@href').get()
             yield response.follow(next_url, callback=self.parse)
 
