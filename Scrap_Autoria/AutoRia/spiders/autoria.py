@@ -14,8 +14,6 @@ class AutoriaSpider(scrapy.Spider):
     max_pages = 4
 
     #define custom settings. Here we set up setting for JSON file for storage data as a backup copy.
-    #Cookies = False,to not provide cookie and try to escape
-    #site defense against bots (it doesn't work in my case)
 
     custom_settings = {
         "FEEDS": {
@@ -29,7 +27,7 @@ class AutoriaSpider(scrapy.Spider):
         "COOKIES_ENABLED": False
     }
 
-    #Define webdriver from Selenium. Selenium will help us to retrieve phone number from pop up. Also it would be done with playwright
+    #Define webdriver from Selenium. Selenium will help us to retrieve phone number from pop up. Also, it would be done with playwright
 
     def __init__(self, *args, **kwargs):
         super(AutoriaSpider, self).__init__(*args, **kwargs)
