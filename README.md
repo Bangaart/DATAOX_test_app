@@ -51,7 +51,7 @@ for scrap phone number, to interact with button
 ## How to launch apps 
 1. Download this project in the folder on your compute
 2. open docker inside this folder and run ```docker copmose up --build```
-3. After this it starts to scrap it can take a lot of time so i limited the number of pages to 4, for demo 
+3. After it starts scrapping it can take a lot of time so i limited the number of pages to 4, for demo 
 4. After this script finish, dump script activates and dumps all data from BD to folder dumps
 
 
