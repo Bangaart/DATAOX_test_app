@@ -51,7 +51,7 @@ for scrap phone number, to interact with button
 ## How to launch apps 
 1. Download this project in the folder on your compute
 2. open docker inside this folder and run ```docker copmose up --build```
-3. After this it starts to scrap it can take a lot of time so i am finding way to limit the number of pages, now i suggest to comment the code that yields next pages (it commented by default).
+3. After this it starts to scrap it can take a lot of time so i limited the number of pages to 4, for demo 
 4. After this script finish, dump script activates and dumps all data from BD to folder dumps
 
 
@@ -67,4 +67,4 @@ on case when postgres will not work
 ## Additional info 
 Of course this project can be upgraded with some middlewares to pass site 
 bot defense such as proxies, fingerprints, changes browsers also use playwright instead of selemium and so on
-I have no much time and experience to do it well.
+
