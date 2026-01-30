@@ -88,7 +88,7 @@ FEED_EXPORT_ENCODING = "utf-8"
 ITEM_PIPELINES = {
     "AutoRia.pipelines.DuplicatesPipeline": 200,
     "AutoRia.pipelines.FormatDataPipeline": 250,
-    "AutoRia.pipelines.PostgresSQLPipeline": 300
+    # "AutoRia.pipelines.PostgresSQLPipeline": 300
 }
 
 # CONCURRENT_REQUESTS = 5

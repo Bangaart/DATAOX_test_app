@@ -25,6 +25,7 @@ class AutoriaSpider(scrapy.Spider):
     }
 },
         "COOKIES_ENABLED": True,
+        "CONCURRENT_REQUESTS": 1,
     }
 
     #Define webdriver from Selenium. Selenium will help us to retrieve phone number from pop up. Also, it would be done with playwright
