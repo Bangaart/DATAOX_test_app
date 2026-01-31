@@ -25,7 +25,7 @@ class AutoriaSpider(scrapy.Spider):
         "override": True
     }
 },
-        "DOWNLOAD_DELAY": 2
+        "DOWNLOAD_DELAY": 4
     }
 
     #Define webdriver from Selenium. Selenium will help us to retrieve phone number from pop up. Also, it would be done with playwright
@@ -71,7 +71,8 @@ class AutoriaSpider(scrapy.Spider):
     # hard to understanding payload
 
     def parse_car_item(self, response):
-        self.logger.info(response.request.headers.get("User-Agent"))
+        self.logger.info(response.request.headers)
+        self.logger.info(response.request.meta)
         self.driver.get(response.url)
         wait = WebDriverWait(self.driver, 3)
 
@@ -93,7 +94,7 @@ class AutoriaSpider(scrapy.Spider):
         #                                     '//div[contains(@class, "popup-body")]//button[@data-action="call"]/span').text.strip() != "")
             sel = Selector(text=self.driver.page_source)
             phone_number = sel.xpath(
-                '//div[contains(@class, "popup-body")]//button[@data-action="call"]/span/text()')
+                '//div[contains(@class, "popup-body")]//button[@data-action="call"]/span/text()').get()
         except NoSuchElementException:
             print("Button was not found")
 

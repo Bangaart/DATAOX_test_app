@@ -93,11 +93,11 @@ FEED_EXPORT_ENCODING = "utf-8"
 
 
 
-DOWNLOADER_MIDDLEWARES = {
-    "AutoRia.middlewares.UserAgentChange": 300,
-    "AutoRia.middlewares.ScrappedProxyMiddleware": 400,
-    "scrapy.downloadermiddlewares.useragent.UserAgentMiddleware": None,
-}
+# DOWNLOADER_MIDDLEWARES = {
+#     "AutoRia.middlewares.UserAgentChange": 300,
+#     "AutoRia.middlewares.ScrappedProxyMiddleware": 400,
+#     "scrapy.downloadermiddlewares.useragent.UserAgentMiddleware": None,
+# }
 
 # CONCURRENT_REQUESTS = 5
 
