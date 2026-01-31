@@ -5,13 +5,14 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+from selenium.common.exceptions import NoSuchElementException
 
 class AutoriaSpider(scrapy.Spider):
     name = "autoria"
     allowed_domains = ["auto.ria.com"]
     start_urls = ["https://auto.ria.com/uk/search/?search_type=2&page=0"]
     base_url = "https://auto.ria.com"
-    max_pages = 4
+    max_pages = 0
 
     #define custom settings. Here we set up setting for JSON file for storage data as a backup copy.
 
@@ -24,8 +25,7 @@ class AutoriaSpider(scrapy.Spider):
         "override": True
     }
 },
-        "COOKIES_ENABLED": True,
-        "CONCURRENT_REQUESTS": 1,
+        "DOWNLOAD_DELAY": 2
     }
 
     #Define webdriver from Selenium. Selenium will help us to retrieve phone number from pop up. Also, it would be done with playwright
@@ -41,9 +41,12 @@ class AutoriaSpider(scrapy.Spider):
         self.driver = webdriver.Chrome(options=options)
 
         self.page_counter = 0
+        self.not_parsed_pages = 0
 
     def closed(self, reason):
         self.driver.close()
+        with open("unparsed.txt", 'w') as f:
+            f.write(str(self.not_parsed_pages))
 
     #Here we define our page urls and cars urls(car profile). In this case parse method return responses which go to the
     # method belows (parse_car_items)
@@ -55,12 +58,12 @@ class AutoriaSpider(scrapy.Spider):
         yield from response.follow_all(full_cars_urls, self.parse_car_item)
 
         #define next_link
-        page_link = urlparse(response.url)
-        queries = parse_qs(page_link.query)
-        queries["page"] = [str((int(queries.get("page")[0]) + 1))]
-        next_url = urlunparse(page_link._replace(query=urlencode(queries, doseq=True)))
-        if (response.xpath('//button[@title="Next" and not(@disabled)]')) and self.page_counter < self.max_pages:
-            yield response.follow(next_url, callback=self.parse)
+        # page_link = urlparse(response.url)
+        # queries = parse_qs(page_link.query)
+        # queries["page"] = [str((int(queries.get("page")[0]) + 1))]
+        # next_url = urlunparse(page_link._replace(query=urlencode(queries, doseq=True)))
+        # if (response.xpath('//button[@title="Next" and not(@disabled)]')) and self.page_counter < self.max_pages:
+        #     yield response.follow(next_url, callback=self.parse)
 
 
     #The main logic. Here we parse the response which we get from Downloader. Use selenium to click on the phone link and invoke
@@ -68,41 +71,58 @@ class AutoriaSpider(scrapy.Spider):
     # hard to understanding payload
 
     def parse_car_item(self, response):
+        self.logger.info(response.request.headers.get("User-Agent"))
         self.driver.get(response.url)
-        button = self.driver.find_element(By.XPATH, '//div[@id="sellerInfo"]//button[@data-action="showBottomPopUp"]')
-        button.click()
-        wait = WebDriverWait(self.driver, 5)
-        wait.until(lambda d: d.find_element(By.XPATH,
-                                            '//div[contains(@class, "popup-body")]//button[@data-action="call"]/span').text.strip() != "")
+        wait = WebDriverWait(self.driver, 3)
 
-        sel = Selector(text=self.driver.page_source)
-        phone_number = sel.xpath(
-            '//div[contains(@class, "popup-body")]//button[@data-action="call"]/span/text()').get()
-        item = response.xpath('//div[@id="main"]')
+        if not response.xpath('//div[@id="sellerInfo"]//button[@data-action="showBottomPopUp"]'):
+            self.logger.error(response.url)
+            with open("debug.html", "ab") as f:
+                f.write(response.body)
+                self.not_parsed_pages += 1
+        phone_number = "Not Found"
 
-        #find appropriate values by xpath
+        # accept_cookies_button = self.driver.find_element(By.XPATH, '//button[contains(span/text(), "Розумію і дозволяю")]')
+        # wait.until(lambda _: accept_cookies_button.is_displayed())
+        # accept_cookies_button.click()
+        try:
+            show_user_phone = self.driver.find_element(By.XPATH, '//div[@id="sellerInfo"]//button[@data-action="showBottomPopUp"]')
+            show_user_phone.click()
 
-        title = item.xpath('//div[@id="sideTitleTitle"]/span/text()').get()
+        # wait.until(lambda d: d.find_element(By.XPATH,
+        #                                     '//div[contains(@class, "popup-body")]//button[@data-action="call"]/span').text.strip() != "")
+            sel = Selector(text=self.driver.page_source)
+            phone_number = sel.xpath(
+                '//div[contains(@class, "popup-body")]//button[@data-action="call"]/span/text()')
+        except NoSuchElementException:
+            print("Button was not found")
 
-        odometer = item.xpath('//div[@id="basicInfoTableMainInfo0"]/span/text()').get()
-        username = item.xpath('//div[@id="sellerInfoUserName"]/span/text()').get()
-        image_url = item.css(".photo-slider").xpath('//img/@src').re(r"^https:\/\/.+$")[0]
-        images_count = item.xpath('//div[@id="photoSlider"]/span/span[last()]/text()').get()
-        car_number = item.xpath('//div[@id="badges"]/div/span/text()').get(default="Number is not provided")
-        car_vin = item.xpath('//div[@id="badgesVinGrid"]//span/text()').get()
-        price_usd = item.xpath('//div[@id="sidePrice"]/strong/text()').get()
+        finally:
+            item = response.xpath('//div[@id="main"]')
 
-        #yield an item with dictionary filled with values we scrapped above
-        cars = {
-                "url": response.url,
-                "title": title,
-                "price_usd": price_usd,
-                "odometer":  odometer,
-                "username": username,
-                "phone_number": phone_number,
-                "image_url": image_url,
-                "images_count": images_count,
-                "car_number": car_number,
-                "car_vin": car_vin,
-            }
-        yield cars
+            #find appropriate values by xpath
+
+            title = item.xpath('//div[@id="sideTitleTitle"]/span/text()').get()
+            odometer = item.xpath('//div[@id="basicInfoTableMainInfo0"]/span/text()').get()
+            username = item.xpath('//div[@id="sellerInfoUserName"]/span/text()').get()
+            image_url = item.css(".photo-slider").xpath('//img/@src').re(r"^https:\/\/.+$")
+            images_count = item.xpath('//div[@id="photoSlider"]/span/span[last()]/text()').get()
+            phone_number = phone_number
+            car_number = item.xpath('//div[@id="badges"]/div/span/text()').get(default="Number is not provided")
+            car_vin = item.xpath('//div[@id="badgesVinGrid"]//span/text()').get()
+            price_usd = item.xpath('//div[@id="sidePrice"]/strong/text()').get()
+
+            #yield an item with dictionary filled with values we scrapped above
+            cars = {
+                    "url": response.url,
+                    "title": title,
+                    "price_usd": price_usd,
+                    "odometer":  odometer,
+                    "username": username,
+                    "phone_number": phone_number,
+                    "image_url": image_url[0] if image_url else None,
+                    "images_count": images_count,
+                    "car_number": car_number,
+                    "car_vin": car_vin,
+                }
+            yield cars

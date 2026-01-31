@@ -85,10 +85,18 @@ DOWNLOAD_DELAY = 1
 # Set settings whose default value is deprecated to a future-proof value
 FEED_EXPORT_ENCODING = "utf-8"
 
-ITEM_PIPELINES = {
-    "AutoRia.pipelines.DuplicatesPipeline": 200,
-    "AutoRia.pipelines.FormatDataPipeline": 250,
+# ITEM_PIPELINES = {
+    # "AutoRia.pipelines.DuplicatesPipeline": 200,
+    # "AutoRia.pipelines.FormatDataPipeline": 250,
     # "AutoRia.pipelines.PostgresSQLPipeline": 300
+# }
+
+
+
+DOWNLOADER_MIDDLEWARES = {
+    "AutoRia.middlewares.UserAgentChange": 300,
+    "AutoRia.middlewares.ScrappedProxyMiddleware": 400,
+    "scrapy.downloadermiddlewares.useragent.UserAgentMiddleware": None,
 }
 
 # CONCURRENT_REQUESTS = 5
